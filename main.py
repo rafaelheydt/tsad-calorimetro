@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import torch
+import random
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from time import time
@@ -61,6 +62,7 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 		l1s, l2s = [], []
 		if training:
 			for d in data:
+				d = d.to(device)
 				ae1s, ae2s, ae2ae1s = model(d)
 				d = d.view(-1)
 				l1 = (1 / n) * l(ae1s, d) + (1 - 1/n) * l(ae2ae1s, d)
@@ -78,9 +80,10 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 			l1s = []
 			datashape = feats * model.window_size
 			for d in data: 
+				d = d.to(device)
 				ae1, ae2, ae2ae1 = model(d)
-				ae1s.append(ae1); ae2s.append(ae2); ae2ae1s.append(ae2ae1)
 				d = d.view(-1)
+				ae1s.append(ae1.cpu()); ae2s.append(ae2.cpu()); ae2ae1s.append(ae2ae1.cpu())
 				l1 = 0.1 * l(ae1, d) + 0.9 * l(ae2ae1, d)
 				l1s.append(l1)
 			ae1s, ae2s, ae2ae1s = torch.stack(ae1s), torch.stack(ae2s), torch.stack(ae2ae1s)
@@ -97,6 +100,7 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 		l1s, l2s = [], []
 		if training:
 			for d in data:
+				d = d.to(device)
 				local_bs = d.shape[0]
 				window = d.permute(1, 0, 2)
 				elem = window[-1, :, :].view(1, local_bs, feats)
@@ -114,14 +118,15 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 			loss = torch.empty(0)
 			z_all = torch.empty(0)
 			for d in data:
+				d = d.to(device)
 				local_bs = d.shape[0]
 				window = d.permute(1, 0, 2)
 				elem = window[-1, :, :].view(1, local_bs, feats)
 				z = model(window, elem)
 				if isinstance(z, tuple): z = z[1]
 				l1 = l(z, elem)[0]
-				loss = torch.cat((loss, l1.view(-1, feats)), dim=0)
-				if pred: z_all = torch.cat((z_all, z.view(-1, feats)), dim=0)
+				loss = torch.cat((loss, l1.cpu().view(-1, feats)), dim=0)
+				if pred: z_all = torch.cat((z_all, z.cpu().view(-1, feats)), dim=0)
 			if pred:
 				return loss.detach().numpy(), z_all.detach().numpy()
 			else:
@@ -141,6 +146,8 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 		if training:
 			l1s = []
 			for d in data: # d.shape is [B, window_size, N] or d = (dx, dy)
+				if isinstance(d, (list, tuple)): d = [x.to(device) for x in d]
+				else: d = d.to(device)
 				if model.name == 'iTransformer' and model.forecasting:	
 					elem = d[1][:, -1, :].view(-1, 1, feats)  # [B, 1, N]
 					d = d[0]								  # [B, window_size, N]
@@ -180,13 +187,13 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 				else:
 					d_enc = None
 				if model.output_attention:
-					z = model(d, d_enc)[0]
+					z = model(d.to(device) if hasattr(d, 'to') else d, d_enc.to(device) if d_enc is not None and hasattr(d_enc, 'to') else d_enc)[0]
 				else:
-					z = model(d, d_enc)
-				l1 = l(z, elem)
-				loss = torch.cat((loss, l1), dim=0)
+					z = model(d.to(device) if hasattr(d, 'to') else d, d_enc.to(device) if d_enc is not None and hasattr(d_enc, 'to') else d_enc)
+				l1 = l(z, elem.to(device) if hasattr(elem, 'to') else elem)
+				loss = torch.cat((loss, l1.cpu()), dim=0)
 				if pred:
-					z_all = torch.cat((z_all, z), dim=0)
+					z_all = torch.cat((z_all, z.cpu()), dim=0)
 			loss = loss.view(-1, feats)
 			if pred:
 				z_all = z_all.reshape(-1, feats)
@@ -275,6 +282,7 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 		if training:
 			l1s = []
 			for d in data:
+				d = d.to(device)
 				y_pred = model(d)
 				l1 = l(y_pred, d)
 				l1s.append(torch.mean(l1).item())
@@ -288,10 +296,11 @@ def backprop(epoch, model, data, feats, optimizer, scheduler, training=True,
 			loss = torch.empty(0)
 			z_all = torch.empty(0)
 			for d in data:
+				d = d.to(device)
 				y_pred = model(d)
 				l1 = l(y_pred, d)
-				loss = torch.cat((loss, l1), dim=0)
-				z_all = torch.cat((z_all, y_pred), dim=0)
+				loss = torch.cat((loss, l1.cpu()), dim=0)
+				z_all = torch.cat((z_all, y_pred.cpu()), dim=0)
 			loss = loss.view((-1, feats))
 			z_all = z_all.view((-1, feats))
 			if pred:
@@ -305,6 +314,13 @@ if __name__ == '__main__':
 	print('Arguments:\n')
 	pprint(vars(args))
 	print('\nCUDA available:', torch.cuda.is_available())
+	if args.seed >= 0:
+		torch.manual_seed(args.seed)
+		np.random.seed(args.seed)
+		random.seed(args.seed)
+		print(f'Seed: {args.seed}')
+	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+	print('Using device:', device)
 	print("MPS (Apple Silicon GPU) is available:", torch.backends.mps.is_available(), '\n')
 
 	# define path for results, checkpoints & plots & create directories
@@ -353,6 +369,7 @@ if __name__ == '__main__':
 	total_params = sum(p.numel() for p in model.parameters())
 	trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 	print(f'total params: {total_params}, trainable params: {trainable_params}')
+	model = model.to(device)
 
 	# Create data loader
 	data_loader_train = DataLoader(train, batch_size=model.batch, shuffle=False)
@@ -523,9 +540,12 @@ if __name__ == '__main__':
 				name='_all')
 	
 	if feats <= 40:
-		plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred, labels, name='_local_or')
-		plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred_maj, labels, name='_local_maj')
-		plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred_glob, labels, name='_global')
+		try:
+			plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred, labels, name='_local_or')
+			plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred_maj, labels, name='_local_maj')
+			plotter2(plot_path, testO, y_pred, loss, args.dataset, labelspred_glob, labels, name='_global')
+		except Exception as e:
+			print(f'Plotting skipped: {e}')
 
 	### saving results
 	# results for different anomaly definitions, scan over i dimensions (between 1 and feats)

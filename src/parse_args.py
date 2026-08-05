@@ -32,6 +32,7 @@ def parse_arguments() -> argparse.Namespace:
 
 	# Miscellaneous
 	parser.add_argument('--name', type=str, required=False, default=None, help="name of the output folder")
+	parser.add_argument('--seed', type=int, required=False, default=-1, help='random seed')
 	parser.add_argument('--f', default=None, help='dummy argument for jupyter notebooks')
 	
 	return parser.parse_args()

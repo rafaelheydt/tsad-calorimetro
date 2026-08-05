@@ -1,131 +1,76 @@
+# TSAD para Monitoramento de Qualidade de Dados em Calorímetros
 
-# README
+Detecção de anomalias em séries temporais (TSAD) aplicada ao monitoramento de
+qualidade de dados (DQM) de calorímetros finamente segmentados, utilizando dados
+sintéticos gerados pelo simulador [Lorenzetti Showers](https://github.com/lorenzetti-hep/lorenzetti).
 
-This repository allows to run and compare multipe time series anomaly detection algorithms and contains implementations
+Este repositório contém o código referente ao artigo:
 
-## Installation
-This code needs Python-3.8 or higher.
-The provided environment.yml file can be used to set up the environment (using conda or mamba) using:
+> E. G. M. B. da Silva, M. F. da Silva, E. F. de Simas Filho, J. L. Marin e
+> E. E. P. de Souza, "Detecção de Anomalias em Séries Temporais em Calorímetros
+> Finamente Segmentados", XLIV Simpósio Brasileiro de Telecomunicações e
+> Processamento de Sinais (SBrT), Salvador, BA, 2026.
+
+## Proveniência e atribuição
+
+Este repositório estende o framework TSAD originalmente desenvolvido por
+Shreshth Tuli et al. ([TranAD](https://github.com/imperial-qore/TranAD)) e
+adaptado para calorimetria por Laura Boggia
+([TSAD](https://github.com/laurab222/TSAD)). O código é distribuído sob a
+licença BSD 3-Clause, preservando os avisos de copyright originais (ver arquivo
+`LICENSE`).
+
+As principais contribuições deste trabalho em relação à base são:
+
+- Inclusão do modelo **LSTM-AE** como baseline, não avaliado anteriormente neste contexto;
+- Avaliação em **13 cenários** de anomalia (módulos mortos e ruído aumentado),
+  variando intensidade de ruído, taxa de anomalia e condição de *pileup*;
+- **Busca de hiperparâmetros** do iTransformer (janela deslizante e dimensão interna);
+- Análise de **discriminabilidade das características** via estatística de Kolmogorov-Smirnov (KS);
+- Estudo de **seleção de características** (top-9 por KS).
+
+## Modelos avaliados
+
+- **TranAD** — Transformer com treinamento adversarial e auto-condicionamento
+- **iTransformer** — Transformer com *embedding* invertido (atenção sobre variáveis)
+- **LSTM-AE** — Autoencoder baseado em LSTM
+
+## Requisitos
+
+- Python 3.9
+- PyTorch 2.8
+- Demais dependências em `requirements.txt`
+
+Instalação:
+
 ```bash
-conda env create -f environment.yml
-```
-Otherwise you can also install torch and then the packages from `requirements.txt`.
-
-## Dataset Preprocessing
-Preprocess all datasets except for IEEECIS using the command
-```bash
-python3 preprocess.py creditcard GECCO SMAP MSL SWaT WADI SMD UCR 
-```
-Distribution rights to some datasets (i.e. SWaT and WADI) are not be available, one needs to ask for the data on the iTrust website. All other datasets can be easily downloaded online, following the references in the paper.
-
-
-## Training & Testing
-To run a model on a dataset, run the following command:
-```bash
-python main.py --model <model> --dataset <dataset> --retrain
-```
-where `<model>` can be either of `iTransformer`, `Transformer`, `TranAD`, `USAD`, `OmniAnomaly` and `LSTM_AE`, and dataset can be one of `creditcard_normal`, `GECCO_normal`, `IEEECIS`, `MSL`, `SMAP`, `SMD`, `SWaT`, `SWaT_1D` `UCR` and `WADI`.
-The `normal` in the file name indicates that only normal data (i.e. no anomalies) are present in the training data.
-To train with less data, (maximum of 10k time stamps), use the following command:
-```bash
-python3 main.py --model <model> --dataset <dataset> --retrain --less
-```
-
-The default is always reconstruction-based anomaly detection.
-When working with forecasting-based anomaly detection, it is necessary to add the argument `--forecasting` to the command:
-```bash
-python3 main.py --model <model> --dataset <dataset> --retrain --forecasting
-```
-The step size is by default always 1 when forecasting time series.
-
-Further arguments, their description and default values can be found  `src/parse_args.py`.
-
-The output will provide training time and anomaly detection performance. For example:
-```bash
-Arguments:
-
-{'checkpoint': None,
- 'd_model': 2,
- 'dataset': 'GECCO_normal',
- 'enc': False,
- 'epochs': 2,
- 'f': None,
- 'feats': -1,
- 'k': -1,
- 'less': True,
- 'loss': 'MSE',
- 'model': 'iTransformer',
- 'name': 'test_new',
- 'q': 1e-05,
- 'retrain': True,
- 'shuffle': False,
- 'step_size': 1,
- 'test': False,
- 'window_size': 10}
-
-CUDA available: False
-MPS (Apple Silicon GPU) is available: True 
-
-train shape with windows: (9991, 10, 9)
-test shape with windows: (1000, 10, 9)
-labels shape: (10000, 9)
-Creating new model: iTransformer
-total params: 3036, trainable params: 3036
-Training iTransformer on GECCO_normal
-Epoch 0,        L_train = 0.08838528090700046,          L_valid = 0,    LR = 0.0001                                             
-Epoch 1,        L_train = 0.08258313718844805,          L_valid = 0,    LR = 0.0001                                             
-100%|█████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:19<00:00,  9.52s/it]
-Training time:    19.0772 s or 0.32 min 
-Testing iTransformer on GECCO_normal
-Local results with 1 anomalous dimensions for anomaly
-{'FN': 46,
- 'FP': 79,
- 'MCC': 0.8678293548295123,
- 'ROC/AUC': 0.9478345746650794,
- 'TN': 9442,
- 'TP': 433,
- 'detection level q': 1e-05,
- 'f1': 0.8738597709843012,
- 'precision': 0.8457031084823612,
- 'recall': 0.9039665782052907}
-Local results with 5 anomalous dimensions for anomaly
-{'FN': 479,
- 'FP': 0,
- 'MCC': 0.0,
- 'ROC/AUC': 0.5,
- 'TN': 9521,
- 'TP': 0,
- 'detection level q': 1e-05,
- 'f1': 0.0,
- 'precision': 0.0,
- 'recall': 0.0}
-Global results with 9 anomalous dimensions for anomaly
-{'FN': 479,
- 'FP': 3,
- 'Hit@100%': 1.0,
- 'Hit@150%': 1.0,
- 'MCC': -0.003885547794772807,
- 'NDCG@100%': 1.0,
- 'NDCG@150%': 1.0,
- 'ROC/AUC': 0.49984245352378953,
- 'TN': 9518,
- 'TP': 0,
- 'detection_level_q': 1e-05,
- 'f1': 0.0,
- 'precision': 0.0,
- 'recall': 0.0,
- 'test_loss': 0.08496810780089022,
- 'threshold': 3.3204767317791255,
- 'train_loss': 0.0804248683839156,
- 'train_time': 19.07716202735901}
+conda create -n tsad python=3.9
+conda activate tsad
+pip install -r requirements.txt
 ```
 
-## Deterministic Baseline
-The deterministic baseline algorithm which applies POT to the absolute value of the time series, can be found in `Baseline_and_IF.ipynb`. 
-This notebook also contains an implementation of the Isolation Forest algorithm applied to a time series.
+## Uso
 
+Treinamento e avaliação de um modelo em um cenário:
 
-## Info
-Part of this repository is based on the code corresponding to the paper "TranAD: Deep Transformer Networks for Anomaly Detection in Multivariate Time Series Data" (S.Tuli et al., VLDB 2022). The code can be found [here](https://github.com/imperial-qore/TranAD). Thanks a lot!
+```bash
+python main.py --model LSTM_AE --dataset lorenzetti_deadcells --retrain --epochs 10
+```
 
-The iTransformer model used in this code is based on the implementation [here](https://github.com/thuml/iTransformer), based on the paper "iTransformer: Inverted Transformers Are Effective for Time Series Forecasting" (Y.Liu et al., ICLR 2024).
+Modelos disponíveis: `TranAD`, `iTransformer`, `LSTM_AE`.
+
+## Métrica
+
+O desempenho é avaliado pelo Coeficiente de Correlação de Matthews (MCC),
+adequado a problemas com classes desbalanceadas. Cada experimento é repetido com
+3 sementes aleatórias, reportando-se média ± desvio padrão.
+
+## Citação
+
+Se este código for útil em sua pesquisa, considere citar o artigo do SBrT 2026
+(referência acima) e os trabalhos originais de Tuli et al. (TranAD) e
+Boggia & Malaescu (Lorenzetti para TSAD).
+
+## Licença
+
+BSD 3-Clause. Ver arquivo [`LICENSE`](LICENSE).

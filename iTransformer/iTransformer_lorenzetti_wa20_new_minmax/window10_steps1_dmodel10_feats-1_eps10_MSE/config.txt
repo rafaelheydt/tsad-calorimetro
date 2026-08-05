@@ -1,0 +1,79 @@
+iTransformer on lorenzetti_wa20_new_minmax
+ 
+Namespace(dataset='lorenzetti_wa20_new_minmax', model='iTransformer', checkpoint=None, window_size=10, step_size=1, d_model=10, epochs=10, feats=-1, q=1e-05, k=-1, test=False, retrain=True, less=False, forecasting=False, enc=False, shuffle=False, loss='MSE', name=None, seed=3, f=None)
+total params: 26988, trainable params: 26988
+feats: 18
+train: 66487
+test: 3350
+ts_lengths train: [66496]
+ts_lengths test: [33496]
+optimizer: AdamW (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    decoupled_weight_decay: True
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    initial_lr: 0.0001
+    lr: 0.0001
+    maximize: False
+    weight_decay: 1e-05
+), 
+scheduler: <torch.optim.lr_scheduler.StepLR object at 0x7754e589ed90>
+
+Model Summary:
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+iTransformer                                  [32, 10, 18]              --
+├─DataEmbedding_inverted: 1-1                 [32, 18, 10]              --
+│    └─Linear: 2-1                            [32, 18, 10]              110
+│    └─Dropout: 2-2                           [32, 18, 10]              --
+├─Encoder: 1-2                                [32, 18, 10]              --
+│    └─ModuleList: 2-3                        --                        --
+│    │    └─EncoderLayer: 3-1                 [32, 18, 10]              --
+│    │    │    └─AttentionLayer: 4-1          [32, 18, 10]              --
+│    │    │    │    └─Linear: 5-1             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-2             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-3             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-4             [32, 18, 18]              198
+│    │    │    │    └─FullAttention: 5-5      [32, 18, 18, 10]          --
+│    │    │    │    └─Linear: 5-6             [32, 18, 10]              1,810
+│    │    │    └─Dropout: 4-2                 [32, 18, 10]              --
+│    │    │    └─LayerNorm: 4-3               [32, 18, 10]              20
+│    │    │    └─Conv1d: 4-4                  [32, 256, 18]             2,816
+│    │    │    └─Dropout: 4-5                 [32, 256, 18]             --
+│    │    │    └─Conv1d: 4-6                  [32, 10, 18]              2,570
+│    │    │    └─Dropout: 4-7                 [32, 18, 10]              --
+│    │    │    └─LayerNorm: 4-8               [32, 18, 10]              20
+│    │    └─EncoderLayer: 3-2                 [32, 18, 10]              --
+│    │    │    └─AttentionLayer: 4-9          [32, 18, 10]              --
+│    │    │    │    └─Linear: 5-7             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-8             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-9             [32, 18, 180]             1,980
+│    │    │    │    └─Linear: 5-10            [32, 18, 18]              198
+│    │    │    │    └─FullAttention: 5-11     [32, 18, 18, 10]          --
+│    │    │    │    └─Linear: 5-12            [32, 18, 10]              1,810
+│    │    │    └─Dropout: 4-10                [32, 18, 10]              --
+│    │    │    └─LayerNorm: 4-11              [32, 18, 10]              20
+│    │    │    └─Conv1d: 4-12                 [32, 256, 18]             2,816
+│    │    │    └─Dropout: 4-13                [32, 256, 18]             --
+│    │    │    └─Conv1d: 4-14                 [32, 10, 18]              2,570
+│    │    │    └─Dropout: 4-15                [32, 18, 10]              --
+│    │    │    └─LayerNorm: 4-16              [32, 18, 10]              20
+│    └─LayerNorm: 2-4                         [32, 18, 10]              20
+├─Linear: 1-3                                 [32, 18, 10]              110
+===============================================================================================
+Total params: 26,988
+Trainable params: 26,988
+Non-trainable params: 0
+Total mult-adds (M): 6.72
+===============================================================================================
+Input size (MB): 0.05
+Forward/backward pass size (MB): 16.02
+Params size (MB): 0.22
+Estimated Total Size (MB): 16.28
+===============================================================================================

@@ -1,0 +1,45 @@
+LSTM_AE on lorenzetti_wa20_new_minmax
+ 
+Namespace(dataset='lorenzetti_wa20_new_minmax', model='LSTM_AE', checkpoint=None, window_size=10, step_size=1, d_model=2, epochs=10, feats=-1, q=1e-05, k=-1, test=False, retrain=True, less=False, forecasting=False, enc=False, shuffle=False, loss='MSE', name=None, seed=3, f=None)
+total params: 53906, trainable params: 53906
+feats: 18
+train: 66487
+test: 3350
+ts_lengths train: [66496]
+ts_lengths test: [33496]
+optimizer: AdamW (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    decoupled_weight_decay: True
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    initial_lr: 0.002
+    lr: 0.002
+    maximize: False
+    weight_decay: 1e-05
+), 
+scheduler: <torch.optim.lr_scheduler.StepLR object at 0x7e8c752185e0>
+
+Model Summary:
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+LSTM_AE                                  [100, 10, 18]             --
+├─LSTM: 1-1                              [100, 18, 64]             19,456
+├─LSTM: 1-2                              [100, 10, 64]             33,280
+├─Linear: 1-3                            [100, 10, 18]             1,170
+==========================================================================================
+Total params: 53,906
+Trainable params: 53,906
+Non-trainable params: 0
+Total mult-adds (M): 68.42
+==========================================================================================
+Input size (MB): 0.14
+Forward/backward pass size (MB): 3.16
+Params size (MB): 0.43
+Estimated Total Size (MB): 3.73
+==========================================================================================

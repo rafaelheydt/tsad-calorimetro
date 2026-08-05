@@ -33,7 +33,11 @@ lm_d = {
         'lorenzetti_wa50_new2_minmax': [(0.99, 1.01), (0.99, 1.01)], 
         'lorenzetti_wp40_wa20_new2_minmax': [(0.99, 1.01), (0.99, 1.01)],      
         'lorenzetti_wp40_wa50_new2_minmax': [(0.99, 1.01), (0.99, 1.01)],    
-        'lorenzetti_deadcells': [(0.71, 1.29), (0.71, 1.29)],                   # anom rate ~ 29%
+        'lorenzetti_deadcells': [(0.71, 1.29), (0.71, 1.29)],
+        'lorenzetti_deadcells_top9':        [(0.71, 1.29), (0.71, 1.29)],
+        'lorenzetti_wa20_new_top9':         [(0.78, 1.22), (0.78, 1.22)],
+        'lorenzetti_wa20_new2_top9':        [(0.99, 1.01), (0.99, 1.01)],
+        'lorenzetti_wp40_wa20_new_top9':    [(0.78, 1.22), (0.78, 1.22)],                   # anom rate ~ 29%
 }    
 lm = lm_d[args.dataset][1 if 'TranAD' in args.model else 0]
 
@@ -78,6 +82,10 @@ lr_d = {
         'lorenzetti_wp40_wa20_new2_minmax': 0.0001,
         'lorenzetti_wp40_wa50_new2_minmax': 0.0001,
         'lorenzetti_deadcells': 0.0001,
+        'lorenzetti_deadcells_top9': 0.0001,
+        'lorenzetti_wa20_new_top9': 0.0001,
+        'lorenzetti_wa20_new2_top9': 0.0001,
+        'lorenzetti_wp40_wa20_new_top9': 0.0001,
 	}
 lr = lr_d[args.dataset]
 
@@ -124,6 +132,10 @@ percentiles = {
         'lorenzetti_wp40_wa20_new2_minmax': (99, 2000),
         'lorenzetti_wp40_wa50_new2_minmax': (99, 2000),
         'lorenzetti_deadcells': (99, 2000),
+        'lorenzetti_deadcells_top9': (99, 2000),
+        'lorenzetti_wa20_new_top9': (99, 2000),
+        'lorenzetti_wa20_new2_top9': (99, 2000),
+        'lorenzetti_wp40_wa20_new_top9': (99, 2000),
 	}
 cvp = percentiles[args.dataset][1]
 debug = 9

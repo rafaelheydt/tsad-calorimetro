@@ -307,7 +307,6 @@ class AttentionLayer(nn.Module):
             queries,
             keys,
             values,
-            sigma=sigma,
             attn_mask=attn_mask,
             tau=tau,
             delta=delta

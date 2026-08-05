@@ -206,7 +206,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x, pos=0):
-        x = x + self.pe[pos:pos+x.size(0), :]
+        x = x + self.pe[pos:pos+x.size(0), :].to(x.device)
         return self.dropout(x)
 
 class TransformerEncoderLayer(nn.Module):

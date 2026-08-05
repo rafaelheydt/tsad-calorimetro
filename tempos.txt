@@ -1,0 +1,6 @@
+=== TranAD ===
+[1mTraining time:   113.6313 s or 1.89 min [0m
+=== iTransformer ===
+[1mTraining time:   117.2911 s or 1.95 min [0m
+=== LSTM_AE ===
+[1mTraining time:    35.4058 s or 0.59 min [0m
