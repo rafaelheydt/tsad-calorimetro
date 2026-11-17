@@ -521,6 +521,8 @@ if __name__ == '__main__':
 	lossTfinal, lossFinal = np.mean(lossT, axis=1), np.mean(loss, axis=1)
 	true_labels = (np.sum(labels, axis=1) >= 1) + 0
 	result_global, pred2 = pot_eval(lossTfinal, lossFinal, true_labels, plot_path, f'all_dim', q=args.q)
+	np.save(f'{res_path}/score_global_train.npy', lossTfinal)  # scores por instante, para metricas independentes de limiar
+	np.save(f'{res_path}/score_global_test.npy', lossFinal)
 	labelspred_glob = (pred2 >= 1) + 0
 	result_global.update(hit_att(loss, labels))
 	result_global.update(ndcg(loss, labels))
