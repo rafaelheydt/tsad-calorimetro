@@ -20,7 +20,7 @@ linhas = []
 for res in sorted(glob.glob('*/*_lorenzetti_*/window10_steps1_dmodel2_feats-1_eps10_MSE/seed*/results')):
     partes = res.split(os.sep)
     modelo, cenario, semente = partes[0], partes[1][len(partes[0]) + 1:], partes[3]
-    if not os.path.exists(f'{res}/score_global_test.npy'):
+    if not (os.path.exists(f'{res}/score_global_test.npy') and os.path.exists(f'{res}/res.csv')):  # ignora execucoes interrompidas
         continue
     s = np.load(f'{res}/score_global_test.npy')
     y = carrega('processed', cenario)[2]
