@@ -39,7 +39,8 @@ def _fit_pca(folder, n_comp, whiten_eps):
         P, lam_k = vec[:, :k], lam[:k]
         scale = 1 / np.sqrt(lam_k + whiten_eps) if whiten_eps > 0 else np.ones(k)
         z = ((tr - mu) @ P) * scale
-        zmin, zmax = z.min(axis=0), z.max(axis=0)
+        # com branqueamento o minimo/maximo e global: por componente, a reescala desfaria exatamente a divisao pelo desvio
+        zmin, zmax = (z.min(), z.max()) if whiten_eps > 0 else (z.min(axis=0), z.max(axis=0))
         span = np.where(zmax > zmin, zmax - zmin, 1.0)
         _PCA_CACHE[key] = (lambda x: (((x - mu) @ P) * scale - zmin) / span, k)
     return _PCA_CACHE[key]
