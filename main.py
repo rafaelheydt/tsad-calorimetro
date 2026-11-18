@@ -379,7 +379,7 @@ if __name__ == '__main__':
 		data_loader_valid = DataLoader(valid, batch_size=model.batch, shuffle=False)
 
 	# save arguments and additional info in config file
-	with open(f'{folder}/config.txt', 'w') as f:
+	with open(f'{folder}/config.txt', 'w', encoding='utf-8') as f:  # o resumo do torchinfo tem caracteres fora do cp1252 (Windows)
 		f.write(f'{args.model} on {args.dataset}\n \n')
 		f.write(str(args)+'\n')
 		f.write(f'total params: {total_params}, trainable params: {trainable_params}\n')
@@ -399,9 +399,9 @@ if __name__ == '__main__':
 		if model.name == 'TranAD':
 			window = sample_batch.permute(1, 0, 2)
 			elem = window[-1, :, :].view(1, -1, feats)
-			f.write(str(summary(model, input_data=[window, elem], depth=5, verbose=0)))
+			f.write(str(summary(model, input_data=[window, elem], depth=5, verbose=0, device=device)))
 		else:
-			f.write(str(summary(model, input_data=sample_batch, depth=5, verbose=0)))
+			f.write(str(summary(model, input_data=sample_batch, depth=5, verbose=0, device=device)))
 		
 	### Training phase
 	if not args.test:
