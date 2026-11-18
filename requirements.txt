@@ -4,4 +4,5 @@ matplotlib
 numpy
 scikit-learn
 mplhep
-torchinfo==1.8.0
+torchinfo==1.8.0tslearn
+reformer_pytorch

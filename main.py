@@ -338,9 +338,9 @@ if __name__ == '__main__':
 	os.makedirs(res_path, exist_ok=True)
 
 	# create data sets
-	train = MyDataset(args.dataset, args.window_size, args.step_size, args.model, flag='train', feats=args.feats, less=args.less, enc=args.enc, k=args.k, forecasting=args.forecasting)
-	test = MyDataset(args.dataset, args.window_size, args.window_size, args.model, flag='test', feats=args.feats, less=args.less, enc=args.enc, k=-1, forecasting=args.forecasting)
-	train_test = MyDataset(args.dataset, args.window_size, args.window_size, args.model, flag='train', feats=args.feats, less=args.less, enc=args.enc, k=-1, forecasting=args.forecasting)
+	train = MyDataset(args.dataset, args.window_size, args.step_size, args.model, flag='train', feats=args.feats, less=args.less, enc=args.enc, k=args.k, forecasting=args.forecasting, pca=args.pca, pca_whiten=args.pca_whiten)
+	test = MyDataset(args.dataset, args.window_size, args.window_size, args.model, flag='test', feats=args.feats, less=args.less, enc=args.enc, k=-1, forecasting=args.forecasting, pca=args.pca, pca_whiten=args.pca_whiten)
+	train_test = MyDataset(args.dataset, args.window_size, args.window_size, args.model, flag='train', feats=args.feats, less=args.less, enc=args.enc, k=-1, forecasting=args.forecasting, pca=args.pca, pca_whiten=args.pca_whiten)
 	labels = test.get_labels()
 	
 	print('train shape with windows:', train.data.shape)
@@ -348,7 +348,7 @@ if __name__ == '__main__':
 	print('labels shape:', labels.shape)
 	
 	if args.k > 0:
-		valid = MyDataset(args.dataset, args.window_size, args.step_size, args.model, flag='valid', feats=args.feats, less=args.less, enc=args.enc, k=args.k, forecasting=args.forecasting)
+		valid = MyDataset(args.dataset, args.window_size, args.step_size, args.model, flag='valid', feats=args.feats, less=args.less, enc=args.enc, k=args.k, forecasting=args.forecasting, pca=args.pca, pca_whiten=args.pca_whiten)
 		print(f'{args.k}-fold valid set', valid.__len__(), valid.data.shape)
 
 	feats = train.feats

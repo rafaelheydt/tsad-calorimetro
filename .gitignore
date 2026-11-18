@@ -41,3 +41,7 @@ Thumbs.db
 .idea/
 *.swp
 DualTF/
+
+# Saidas de execucoes com varias sementes/variantes (pesadas)
+*/*/*/seed*/
+results/

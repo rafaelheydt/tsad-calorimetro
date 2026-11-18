@@ -16,6 +16,8 @@ def parse_arguments() -> argparse.Namespace:
 	parser.add_argument('--epochs', '-e', type=int, required=False, default=5, help="number of training epochs")
 	parser.add_argument('--feats', type=int, required=False, default=-1, help="number of features to be used")
 	parser.add_argument('--q', type=float, required=False, default=1e-5, help="detection level (risk) for POT method")
+	parser.add_argument('--pca', type=float, required=False, default=0, help="pre-processamento por PCA: numero de componentes (>=1) ou fracao de variancia (0-1); 0 = desligado")
+	parser.add_argument('--pca_whiten', type=float, required=False, default=0.0, help="branqueamento regularizado: divide componentes por sqrt(autovalor + EPS); 0 = desligado")
 	parser.add_argument('--k', type=int, required=False, default=-1, help="fold for cross-validation")
 	
 	# Boolean flags

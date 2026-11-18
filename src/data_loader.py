@@ -14,8 +14,39 @@ file_prefixes = {
 }
 
 
+_PCA_CACHE = {}
+
+
+def _fit_pca(folder, n_comp, whiten_eps):
+    """Ajusta PCA nos dados de TREINO do cenario (nunca no teste) e devolve uma funcao de projecao.
+
+    n_comp: int >= 1 = numero de componentes; float em (0, 1) = fracao de variancia explicada.
+    whiten_eps: 0 = sem branqueamento; > 0 divide cada componente por sqrt(autovalor + whiten_eps)
+                (branqueamento regularizado, evita explodir componentes de variancia quase nula).
+    As componentes sao reescaladas para [0, 1] com minimo e maximo do treino, porque o TranAD
+    termina em Sigmoid e so consegue reconstruir valores nesse intervalo.
+    """
+    key = (folder, n_comp, whiten_eps)
+    if key not in _PCA_CACHE:
+        paths = sorted(glob.glob(os.path.join(folder, '*train*.npy')))
+        tr = np.concatenate([np.load(p) for p in paths])
+        mu = tr.mean(axis=0)
+        lam, vec = np.linalg.eigh(np.cov(tr - mu, rowvar=False))
+        order = np.argsort(lam)[::-1]
+        lam, vec = np.clip(lam[order], 0, None), vec[:, order]
+        k = n_comp if n_comp >= 1 else int(np.searchsorted(np.cumsum(lam) / lam.sum(), n_comp) + 1)
+        k = int(min(max(k, 1), len(lam)))
+        P, lam_k = vec[:, :k], lam[:k]
+        scale = 1 / np.sqrt(lam_k + whiten_eps) if whiten_eps > 0 else np.ones(k)
+        z = ((tr - mu) @ P) * scale
+        zmin, zmax = z.min(axis=0), z.max(axis=0)
+        span = np.where(zmax > zmin, zmax - zmin, 1.0)
+        _PCA_CACHE[key] = (lambda x: (((x - mu) @ P) * scale - zmin) / span, k)
+    return _PCA_CACHE[key]
+
+
 class MyDataset(Dataset):
-    def __init__(self, dataset, window_size, step_size, modelname, flag='train', feats=-1, less=False, enc=False, k=-1, shuffle=False, forecasting=False):
+    def __init__(self, dataset, window_size, step_size, modelname, flag='train', feats=-1, less=False, enc=False, k=-1, shuffle=False, forecasting=False, pca=0, pca_whiten=0.0):
         """
         Initializes the data loader with the specified parameters.
         Args:
@@ -37,6 +68,8 @@ class MyDataset(Dataset):
 
         self.data_name = dataset
         self.modelname = modelname
+        self.pca = pca
+        self.pca_whiten = pca_whiten
 
         self.window_size = window_size
         self.step_size = step_size
@@ -125,6 +158,13 @@ class MyDataset(Dataset):
                 labels = labels[:, :max_feats]
         else:
             self.feats = data.shape[1] - self.enc_feats
+
+        if self.pca:
+            # pre-processamento: projeta nas componentes principais do treino (so valido sem selecao de features)
+            assert self.feats == data.shape[1] - self.enc_feats and not self.enc, '--pca exige --feats -1 e sem --enc'
+            project, n_comp = _fit_pca(folder, self.pca, self.pca_whiten)
+            data = project(data)
+            self.feats = n_comp
 
         if self.less and self.data_name not in file_prefixes.keys():
             data = data[:10000]
